@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+  <class name="cn.scetc.web.entity.Comment" table="tb_comment">
+      <id name="comment_id" column="comment_id">
+       <generator class="native"></generator>         
+      </id>
+      <property name="comment_context" column="comment_context"></property>
+      <property name="comment_time" column="comment_time"></property>
+      <property name="comment_ip" column="comment_ip"></property>
+      <property name="blog_id" column="blog_id"></property>     
+  </class>
+</hibernate-mapping>

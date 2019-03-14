@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+  <class name="cn.scetc.web.entity.Blog_Type" table="tb_blog_type">
+      <id name="type_id" column="type_id">
+       <generator class="native"></generator>         
+      </id>
+      <property name="type_name" column="type_name"></property>
+      <property name="orderNum" column="orderNum"></property>          
+      <set name="blogs"  inverse="true" cascade="save-update,delete">
+          <key column="type_id"></key> 
+      <one-to-many class="cn.scetc.web.entity.Blog"/>
+      </set>
+  </class>
+</hibernate-mapping>

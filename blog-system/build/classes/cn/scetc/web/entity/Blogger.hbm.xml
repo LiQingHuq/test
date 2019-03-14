@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+  <class name="cn.scetc.web.entity.Blogger" table="tb_blogger">
+      <id name="blogger_id" column="blogger_id">
+       <generator class="native"></generator>         
+      </id>
+      <property name="blogger_name" column="blogger_name"></property>
+      <property name="blogger_nickname" column="blogger_nickname"></property>
+      <property name="blogger_password" column="blogger_password"></property>
+      <property name="blogger_context" column="blogger_context"></property>
+      <property name="blogger_image" column="blogger_image"></property>
+      <property name="blogger_sign" column="blogger_sign"></property>       
+  </class>
+</hibernate-mapping>

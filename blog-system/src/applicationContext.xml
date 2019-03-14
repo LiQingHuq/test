@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd  
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd  
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+	
+	<!-- 注释方式配置，必须要扫描项目的包 -->
+	<context:component-scan base-package="cn.scetc.web.dao.impl,cn.scetc.web.service.impl" />
+	<!-- 开启aop操作-->
+    <aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+	
+	<!-- SessionFactory的配置 -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="configLocation" value="classpath:hibernate.cfg.xml" />
+	</bean>
+	<!--配置HibernateTemplate -->
+	<bean id="hibernateTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	
+	<!-- 事物管理依赖的类 -->
+	<bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<!-- 增强事务配置事务管理器 -->
+	<tx:annotation-driven transaction-manager="txManager"/>
+	
+	<!-- 配置action -->
+	<bean id="commentAction" class="cn.scetc.web.action.CommentAction" scope="prototype"></bean>
+	<bean id="blogAction" class="cn.scetc.web.action.BlogAction" scope="prototype"></bean>
+	<bean id="blog_TypeAction" class="cn.scetc.web.action.Blog_TypeAction" scope="prototype"></bean>
+	<bean id="bloggerAction" class="cn.scetc.web.action.BloggerAction" scope="prototype"></bean>
+</beans>

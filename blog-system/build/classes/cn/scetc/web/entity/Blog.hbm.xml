@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+  <class name="cn.scetc.web.entity.Blog" table="tb_blog">
+      <id name="blog_id" column="blog_id">
+       <generator class="native"></generator>         
+      </id>
+      <property name="blog_title" column="blog_title"></property>
+      <property name="blog_context" column="blog_context"></property>
+      <property name="blog_click" column="blog_click"></property>
+      <property name="blog_summary" column="blog_summary"></property>
+      <property name="blog_time" column="blog_time"></property>
+      <many-to-one name="blog_Type" column="type_id" class="cn.scetc.web.entity.Blog_Type" lazy="false"></many-to-one>
+  </class>
+</hibernate-mapping>
