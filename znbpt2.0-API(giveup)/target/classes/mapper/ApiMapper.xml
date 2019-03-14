@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yunrun.znbptapi.dao.impl.ApiDaoImpl">
+
+    <select id="findSysUser" parameterType="java.lang.String" resultType="sysUser">
+      SELECT
+      op_appid appId,
+      op_secret secret
+      FROM bs_operator WHERE op_operatorname = #{name}
+    </select>
+
+    <select id="checkUser" parameterType="sysRoleQuery" resultType="sysUser">
+        SELECT * FROM bs_operator WHERE op_operatorname = #{name} AND op_encryptsalt= #{password}
+    </select>
+
+    <select id="findOperator" parameterType="java.lang.String" resultType="operator">
+        select
+        DISTINCT a.op_operatorid operatorId,
+        cp_companyid companyId,
+        op_loginname loginName,
+        op_operatorname operatorName,
+        op_operatorlevel operatorLevel,
+        op_password password,
+        op_encryptsalt encryptSalt,
+        op_deadline deadline
+        from bs_operator a
+        left JOIN bs_operator_dmaregion b on a.op_operatorid=b.op_operatorid
+        where op_loginname = #{name}
+    </select>
+
+    <select id="listDeviceInfo" parameterType="deviceQuery" resultType="deviceInfo">
+        SELECT
+        c.ct_customerno customerNo,
+        w.wm_metercode meterCode,
+        w.wm_metername meterName,
+        mt.mt_valvestatus hasValve,
+        w.wm_valvestate valveStatus,
+        w.wm_installdate installTime,
+        w.wm_meterstatus status,
+        w.wm_meteraddr installAddr
+        FROM
+        bs_customer c,
+        bs_company p,
+        bs_customer_watermeter cw,
+        bs_watermeter w,
+        bs_metertype mt
+        WHERE c.ct_customerid = cw.ct_customerid
+        AND cw.wm_meterid = w.wm_meterid
+        AND w.mt_typeid = mt.mt_typeid
+        AND p.cp_companyid=c.cp_companyid
+        <if test=" companyCode != null and companyCode != '' ">
+            AND p.cp_companycode=#{companyCode}
+        </if>
+        <if test=" startTime != null and startTime != '' ">
+            AND w.wm_installdate<![CDATA[   >=  ]]>#{startTime}
+        </if>
+        <if test=" endTime != null and endTime != '' ">
+            AND w.wm_installdate<![CDATA[   <=  ]]>#{endTime}
+        </if>
+        <if test=" status != null and status != '' ">
+            AND w.wm_meterstatus = #{status}
+        </if>
+    </select>
+
+    <select id="findDeviceInfo" parameterType="deviceQuery" resultType="deviceInfo">
+        SELECT
+        c.ct_customerno customerNo,
+        w.wm_metercode meterCode,
+        w.wm_metername meterName,
+        mt.mt_valvestatus hasValve,
+        w.wm_valvestate valveStatus,
+        w.wm_installdate installTime,
+        w.wm_meterstatus status,
+        w.wm_meteraddr installAddr
+        FROM
+        bs_customer c,
+        bs_company p,
+        bs_customer_watermeter cw,
+        bs_watermeter w,
+        bs_metertype mt
+        WHERE c.ct_customerid = cw.ct_customerid
+        AND cw.wm_meterid = w.wm_meterid
+        AND w.mt_typeid = mt.mt_typeid
+        AND p.cp_companyid=c.cp_companyid
+        <if test=" companyCode != null and companyCode != '' ">
+            AND p.cp_companycode=#{companyCode}
+        </if>
+        <if test=" meterCode != null and meterCode != '' ">
+            AND w.wm_metercode=#{meterCode}
+        </if>
+    </select>
+
+    <select id="listReadInfo" parameterType="readQuery" resultType="readInfo">
+        SELECT s.*,dt.td_signalstrength signalStrength
+        FROM (SELECT DISTINCT
+        t.td_deviceid deviceId,
+        w.wm_metercode meterCode,
+        d.md_todayreading currentReading,
+        w.wm_valvestate valveStatus,
+        DATE_FORMAT(d.md_readingtime, '%Y-%m-%d %H:%i:%s') readTime,
+        a.alarmid readStatus
+        FROM
+        bs_transportdevice t,
+        bs_company p,
+        st_meter_dailystats d,
+        bs_watermeter w
+        LEFT JOIN (
+        SELECT DISTINCT
+        w.wm_meterid alarmid
+        FROM
+        ar_alarm a,
+        bs_watermeter w
+        WHERE
+        a.wm_meterid = w.wm_meterid
+        ) a ON w.wm_meterid = a.alarmid
+        WHERE
+        w.cp_companyid = p.cp_companyid
+        AND p.cp_companycode =#{companyCode}
+        AND d.md_readingtime <![CDATA[   >=  ]]> #{startTime}
+        AND d.md_readingtime <![CDATA[   <=  ]]> #{endTime}
+        AND t.td_deviceid = w.wm_deviceid
+        AND w.wm_meterid = d.wm_meterid
+        <if test=" readStatus != null and readStatus != '' and readStatus==1">
+            AND a.alarmid IS NULL
+        </if>
+        <if test=" readStatus != null and readStatus != '' and readStatus==2">
+            AND a.alarmid <![CDATA[   >=  ]]>1
+        </if>
+         )s LEFT JOIN st_transport_dailystats dt
+        ON s.deviceId=dt.td_deviceid AND DATE_FORMAT(dt.td_readingtime, '%Y-%m-%d') = DATE_FORMAT(s.readTime, '%Y-%m-%d')
+    </select>
+
+    <select id="listIntervalFlow" parameterType="readQuery" resultType="intervalFlow">
+       SELECT
+        i.mi_reading flow,
+        DATE_FORMAT(mi_readingtime, '%Y-%m-%d %H:%i:%s') flowTime
+        FROM
+        bs_watermeter w,
+        st_meter_intervalstats i
+        WHERE w.wm_meterid = i.wm_meterid
+        AND w.wm_metercode=#{meterCode}
+        AND i.mi_readingtime<![CDATA[ >= ]]>#{startTime}
+        AND i.mi_readingtime<![CDATA[ <= ]]>#{endTime}
+    </select>
+
+    <select id="listIntervalFlowAll" parameterType="readQuery" resultType="intervalFlow">
+        SELECT
+        w.wm_metercode meterCode,
+        i.mi_reading flow,
+        DATE_FORMAT(mi_readingtime, '%Y-%m-%d %H:%i:%s') flowTime
+        FROM
+        bs_watermeter w,
+        st_meter_intervalstats i
+        WHERE w.wm_meterid = i.wm_meterid
+        AND i.mi_readingtime<![CDATA[ >= ]]>#{startTime}
+        AND i.mi_readingtime<![CDATA[ <= ]]>#{endTime}
+    </select>
+
+    <select id="findReadInfo" parameterType="readQuery" resultType="readInfo">
+        SELECT s.*,dt.td_signalstrength signalStrength
+        FROM (SELECT DISTINCT
+        t.td_deviceid deviceId,
+        w.wm_metercode meterCode,
+        d.md_todayreading currentReading,
+        w.wm_valvestate valveStatus,
+        DATE_FORMAT(d.md_readingtime, '%Y-%m-%d %H:%i:%s') readTime,
+        a.alarmid readStatus
+        FROM
+        bs_transportdevice t,
+        bs_company p,
+        st_meter_dailystats d,
+        bs_watermeter w
+        LEFT JOIN (
+        SELECT DISTINCT
+        w.wm_meterid alarmid
+        FROM
+        ar_alarm a,
+        bs_watermeter w
+        WHERE
+        a.wm_meterid = w.wm_meterid
+        ) a ON w.wm_meterid = a.alarmid
+        WHERE
+        w.cp_companyid = p.cp_companyid
+        AND p.cp_companycode =#{companyCode}
+        AND d.md_readingtime <![CDATA[   >=  ]]> #{startTime}
+        AND d.md_readingtime <![CDATA[   <=  ]]> #{endTime}
+        AND t.td_deviceid = w.wm_deviceid
+        AND w.wm_meterid = d.wm_meterid
+        <if test=" readStatus != null and readStatus != '' and readStatus==1">
+            AND a.alarmid IS NULL
+        </if>
+        <if test=" readStatus != null and readStatus != '' and readStatus==2">
+            AND a.alarmid <![CDATA[   >=  ]]>1
+        </if>
+        AND w.wm_metercode = #{meterCode} )s LEFT JOIN st_transport_dailystats dt
+        ON s.deviceId=dt.td_deviceid AND DATE_FORMAT(dt.td_readingtime, '%Y-%m-%d') = DATE_FORMAT(s.readTime, '%Y-%m-%d')
+        <!--SELECT
+        w.wm_metercode meterCode,
+        d.md_todayreading currentReading,
+        w.wm_valvestate valveStatus,
+        dt.td_signalstrength signalStrength,
+        d.md_readingtime readTime,
+        a.alarmid readStatus
+        FROM
+        st_transport_dailystats dt,
+        bs_transportdevice t,
+        bs_company p,
+        st_meter_dailystats d,
+        bs_watermeter w LEFT JOIN
+        (SELECT DISTINCT w.wm_meterid alarmid FROM ar_alarm a ,bs_watermeter w
+        WHERE a.wm_meterid = w.wm_meterid) a ON w.wm_meterid = a.alarmid
+        WHERE w.cp_companyid=p.cp_companyid
+        AND t.td_deviceid = dt.td_deviceid
+        AND t.td_deviceid=w.wm_deviceid
+        AND w.wm_meterid = d.wm_meterid
+        AND p.cp_companycode=#{companyCode}
+        AND d.md_readingtime <![CDATA[   >=  ]]> #{startTime}
+        AND d.md_readingtime <![CDATA[   <=  ]]> #{endTime}
+        <if test=" readStatus != null and readStatus != '' and readStatus==1">
+            AND a.alarmid IS NULL
+        </if>
+        <if test=" readStatus != null and readStatus != '' and readStatus==2">
+            AND a.alarmid <![CDATA[   >=  ]]>1
+        </if>
+        AND w.wm_metercode=#{meterCode}-->
+
+    </select>
+
+</mapper>
